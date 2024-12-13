@@ -5,10 +5,10 @@ import { useTheme } from '../../../../../theme';
 import Markdown from '../../../../markdown';
 import { useMediaAutoDownload } from '../../../hooks/useMediaAutoDownload';
 import { Button } from './Button';
-import { MessageImage } from './Image';
-import { IImageContainer } from './definitions';
+import { MessageImages } from './Image';
 import MessageContext from '../../../Context';
 import { WidthAwareView } from '../../WidthAwareView';
+import { IImageContainer } from './definitions';
 
 const ImageContainer = ({
 	file,
@@ -21,12 +21,29 @@ const ImageContainer = ({
 }: IImageContainer): React.ReactElement | null => {
 	const { user } = useContext(MessageContext);
 	const { theme } = useTheme();
-	const { status, onPress, url, isEncrypted } = useMediaAutoDownload({ file, author, showAttachment });
 
-	const image = (
-		<Button onPress={onPress}>
+	// Handle both single file and array of files
+	const files = Array.isArray(file) ? file : [file];
+
+	// Process files with useMediaAutoDownload outside of map
+	const processedImages = files.map(singleFile =>
+		useMediaAutoDownload({
+			file: singleFile,
+			author,
+			showAttachment
+		})
+	);
+
+	const imagesComponent = (
+		<Button onPress={() => processedImages[0]?.onPress()}>
 			<WidthAwareView>
-				<MessageImage uri={url} status={status} encrypted={isEncrypted} />
+				<MessageImages
+					images={processedImages.map(({ url, status, isEncrypted }: { url: string; status: string; isEncrypted: boolean }) => ({
+						uri: url,
+						status,
+						encrypted: isEncrypted
+					}))}
+				/>
 			</WidthAwareView>
 		</Button>
 	);
@@ -35,12 +52,12 @@ const ImageContainer = ({
 		return (
 			<View>
 				<Markdown msg={msg} style={[isReply && style]} username={user.username} getCustomEmoji={getCustomEmoji} theme={theme} />
-				{image}
+				{imagesComponent}
 			</View>
 		);
 	}
 
-	return image;
+	return imagesComponent;
 };
 
 ImageContainer.displayName = 'MessageImageContainer';

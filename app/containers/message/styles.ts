@@ -94,10 +94,6 @@ export default StyleSheet.create({
 		fontSize: 12,
 		...sharedStyles.textSemibold
 	},
-	imageContainer: {
-		flexDirection: 'column',
-		borderRadius: 4
-	},
 	image: {
 		width: '100%',
 		minHeight: isTablet ? 300 : 200,
@@ -180,5 +176,30 @@ export default StyleSheet.create({
 		position: 'absolute',
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	imagesContainer: {
+		marginVertical: 4
+	},
+	imageContainer: {
+		position: 'relative',
+		margin: 2
+	},
+	imageListContainer: {
+		gap: 2
+	},
+	singleImageContainer: {
+		maxWidth: '100%'
+	},
+	twoImagesContainer: {
+		flexDirection: 'row',
+		justifyContent: 'space-between'
+	},
+	threeImagesContainer: {
+		flexDirection: 'column'
+	},
+	multipleImagesContainer: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'space-between'
 	}
 });

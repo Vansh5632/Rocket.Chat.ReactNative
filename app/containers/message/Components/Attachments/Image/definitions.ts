@@ -19,3 +19,11 @@ export interface IMessageImage {
 	status: TDownloadState;
 	encrypted: boolean;
 }
+
+export interface ImageDimensions {
+	width: number;
+	height: number;
+}
+export interface IMessageImages {
+	images: IMessageImage[];
+}

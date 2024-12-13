@@ -20,74 +20,112 @@ const Attachments: React.FC<IMessageAttachments> = React.memo(
 			return null;
 		}
 
-		const attachmentsElements = attachments.map((file: IAttachment, index: number) => {
-			const msg = getMessageFromAttachment(file, translateLanguage);
-			if (file && file.image_url) {
-				return (
-					<Image
-						key={file.image_url}
-						file={file}
-						showAttachment={showAttachment}
-						getCustomEmoji={getCustomEmoji}
-						style={style}
-						isReply={isReply}
-						author={author}
-						msg={msg}
-					/>
-				);
-			}
+		// Group image attachments together
+		const groupAttachments = () => {
+			const result = {
+				images: [] as IAttachment[],
+				others: [] as IAttachment[]
+			};
 
-			if (file && file.audio_url) {
-				return (
-					<Audio
-						key={file.audio_url}
-						file={file}
-						getCustomEmoji={getCustomEmoji}
-						isReply={isReply}
-						style={style}
-						author={author}
-						msg={msg}
-					/>
-				);
-			}
+			attachments.forEach((file: IAttachment) => {
+				if (file && file.image_url) {
+					result.images.push(file);
+				} else {
+					result.others.push(file);
+				}
+			});
 
-			if (file.video_url) {
-				return (
-					<Video
-						key={file.video_url}
-						file={file}
-						showAttachment={showAttachment}
-						getCustomEmoji={getCustomEmoji}
-						style={style}
-						isReply={isReply}
-						author={author}
-						msg={msg}
-					/>
-				);
-			}
+			return result;
+		};
 
-			if (file && file.actions && file.actions.length > 0) {
-				return <AttachedActions attachment={file} getCustomEmoji={getCustomEmoji} />;
-			}
-			if (typeof file.collapsed === 'boolean') {
-				return (
-					<CollapsibleQuote key={index} index={index} attachment={file} timeFormat={timeFormat} getCustomEmoji={getCustomEmoji} />
-				);
-			}
+		const { images, others } = groupAttachments();
 
+		const renderImageGroup = () => {
+			if (images.length === 0) return null;
+
+			const msg = images.length === 1 ? getMessageFromAttachment(images[0], translateLanguage) : '';
 			return (
-				<Reply
-					key={index}
-					index={index}
-					attachment={file}
-					timeFormat={timeFormat}
-					getCustomEmoji={getCustomEmoji}
-					msg={msg}
+				<Image
+					key={images.map(img => img.image_url).join('-')}
+					file={images[0]}
 					showAttachment={showAttachment}
+					getCustomEmoji={getCustomEmoji}
+					style={style}
+					isReply={isReply}
+					author={author}
+					msg={msg}
 				/>
 			);
-		});
-		return <>{attachmentsElements}</>;
+		};
+
+		const renderOtherAttachments = () =>
+			others.map((file: IAttachment, index: number) => {
+				const msg = getMessageFromAttachment(file, translateLanguage);
+
+				if (file.audio_url) {
+					return (
+						<Audio
+							key={file.audio_url}
+							file={file}
+							getCustomEmoji={getCustomEmoji}
+							isReply={isReply}
+							style={style}
+							author={author}
+							msg={msg}
+						/>
+					);
+				}
+
+				if (file.video_url) {
+					return (
+						<Video
+							key={file.video_url}
+							file={file}
+							showAttachment={showAttachment}
+							getCustomEmoji={getCustomEmoji}
+							style={style}
+							isReply={isReply}
+							author={author}
+							msg={msg}
+						/>
+					);
+				}
+
+				if (file.actions && file.actions.length > 0) {
+					return <AttachedActions key={index} attachment={file} getCustomEmoji={getCustomEmoji} />;
+				}
+
+				if (typeof file.collapsed === 'boolean') {
+					return (
+						<CollapsibleQuote
+							key={index}
+							index={index}
+							attachment={file}
+							timeFormat={timeFormat}
+							getCustomEmoji={getCustomEmoji}
+						/>
+					);
+				}
+
+				return (
+					<Reply
+						key={index}
+						index={index}
+						attachment={file}
+						timeFormat={timeFormat}
+						getCustomEmoji={getCustomEmoji}
+						msg={msg}
+						showAttachment={showAttachment}
+					/>
+				);
+			});
+
+		return (
+			<>
+				{renderImageGroup()}
+				{renderOtherAttachments()}
+			</>
+		);
 	},
 	(prevProps, nextProps) => dequal(prevProps.attachments, nextProps.attachments)
 );
